@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The 50 Days">
+<meta name="theme-color" content="#080d1a">
+<title>The 50 Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #080d1a;
+  --surface: #0e1525;
+  --card: #111b2e;
+  --border: #1e2d47;
+  --accent: #7ec8f5;
+  --accent2: #a0c4f5;
+  --text: #e8eef8;
+  --muted: #4a6080;
+  --card-done-bg: #0d1e35;
+  --card-done-border: #1e4a7a;
+  --card-done-text: #7ec8f5;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
+}
+
+.header {
+  padding: 56px 22px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(180deg, #080d1a 78%, transparent);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.header-meta {
+  text-align: right;
+  font-size: 0.67rem;
+  color: var(--muted);
+  font-weight: 300;
+  line-height: 1.7;
+  padding-top: 4px;
+}
+
+.progress-wrap {
+  padding: 13px 22px 16px;
+}
+
+.progress-track {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  font-size: 0.64rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.progress-labels strong {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.weekday-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 0 13px 5px;
+}
+
+.wd {
+  text-align: center;
+  font-size: 0.56rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.grid-wrapper {
+  padding: 0 13px 110px;
+}
+
+.month-label {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  padding: 10px 3px 5px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day-cell {
+  aspect-ratio: 1;
+  border-radius: 7px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.13s ease, background 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.day-cell.done {
+  background: var(--card-done-bg);
+  border-color: var(--card-done-border);
+}
+
+.day-cell.today {
+  border-color: var(--accent);
+  border-width: 1.5px;
+}
+
+.day-cell.future {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.day-cell:not(.future):active {
+  transform: scale(0.87);
+}
+
+.day-num {
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.day-cell.done .day-num { color: var(--card-done-text); }
+.day-cell.today .day-num { color: var(--accent); }
+
+.day-date-label {
+  font-size: 0.46rem;
+  color: var(--muted);
+  margin-top: 1px;
+  font-weight: 300;
+}
+
+.dots {
+  display: flex;
+  gap: 2px;
+  margin-top: 3px;
+}
+
+.dot {
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.dot.on { background: var(--accent); }
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 10px 22px 34px;
+  background: linear-gradient(0deg, #080d1a 65%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.streak-info {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+.streak-info strong {
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 500;
+  display: block;
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+.end-date-info {
+  font-size: 0.66rem;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.6;
+}
+
+/* MODAL */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,5,20,0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 51;
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  border-top: 1px solid var(--border);
+  padding-bottom: 40px;
+  transform: translateY(110%);
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 38px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 13px auto 0;
+}
+
+.sheet-header {
+  padding: 18px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet-day-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sheet-day-num em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.sheet-day-date {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 5px;
+  font-weight: 300;
+}
+
+.habit-list {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.habit-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #111b2e;
+  border-radius: 13px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+  -webkit-user-select: none;
+}
+
+.habit-row.checked {
+  background: #0d1e38;
+  border-color: #1e4a7a;
+}
+
+.habit-row:active { transform: scale(0.96); }
+
+.habit-emoji {
+  font-size: 1.4rem;
+  width: 34px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.habit-text { flex: 1; }
+
+.habit-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.habit-desc {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+  font-weight: 300;
+}
+
+.habit-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.habit-row.checked .habit-circle {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #050d1a;
+  font-weight: 700;
+}
+
+.all-done-banner {
+  margin: 4px 20px 0;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(126,200,245,0.1), rgba(160,196,245,0.06));
+  border: 1px solid rgba(126,200,245,0.2);
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--accent);
+  font-weight: 500;
+  display: none;
+}
+
+.all-done-banner.show { display: block; }
+
+.close-sheet {
+  margin: 12px 20px 0;
+  width: calc(100% - 40px);
+  padding: 15px;
+  background: var(--border);
+  border: none;
+  border-radius: 13px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.close-sheet:active { opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="title">The<br><em>50 Days</em></div>
+    <div class="header-meta">
+      Start: 7 april 2026<br>
+      Einde: 26 mei 2026
+    </div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="progress-labels">
+    <span><strong id="doneCount">0</strong> dagen voltooid</span>
+    <span id="pct">0% klaar</span>
+  </div>
+</div>
+
+<div class="weekday-header">
+  <div class="wd">ma</div><div class="wd">di</div><div class="wd">wo</div>
+  <div class="wd">do</div><div class="wd">vr</div><div class="wd">za</div>
+  <div class="wd">zo</div>
+</div>
+
+<div class="grid-wrapper" id="gridWrapper"></div>
+
+<div class="bottom-bar">
+  <div class="streak-info">
+    <strong id="streakNum">0</strong>
+    dagen streak 🔥
+  </div>
+  <div class="end-date-info">
+    26 mei 2026<br>finish line
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-day-num" id="sheetDayNum"></div>
+    <div class="sheet-day-date" id="sheetDayDate"></div>
+  </div>
+  <div class="habit-list" id="habitList"></div>
+  <div class="all-done-banner" id="allDoneBanner">✦ Alle habits voltooid — goed bezig!</div>
+  <button class="close-sheet" onclick="closeSheet()">Sluiten</button>
+</div>
+
+<script>
+const START  = new Date('2026-04-07');
+const TOTAL  = 50;
+const HABITS = [
+  { id: 'alcohol', emoji: '🚫', name: 'Geen alcohol',  desc: 'De hele dag' },
+  { id: 'move',    emoji: '🏃', name: 'Bewegen',        desc: 'Minimaal 15 minuten' },
+  { id: 'read',    emoji: '📖', name: 'Lezen',           desc: '5 pagina\'s' },
+  { id: 'food',    emoji: '🥗', name: 'Whole food',      desc: 'Geen ultraprocessed' },
+  { id: 'water',   emoji: '💧', name: 'Water',           desc: '2 liter' },
+];
+const MONTHS_NL   = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const MONTHS_FULL = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+const DAYS_NL     = ['zo','ma','di','wo','do','vr','za'];
+
+let data = JSON.parse(localStorage.getItem('50days_v2') || '{}');
+function saveData() { localStorage.setItem('50days_v2', JSON.stringify(data)); }
+
+function dateForDay(i) { const d = new Date(START); d.setDate(d.getDate() + i); return d; }
+function dayKey(i)     { const d = dateForDay(i); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+
+function todayIdx() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const s   = new Date(START); s.setHours(0,0,0,0);
+  const idx = Math.floor((now - s) / 86400000);
+  return Math.max(0, Math.min(idx, TOTAL - 1));
+}
+
+function habitsDone(i) {
+  const k = dayKey(i);
+  return data[k] ? HABITS.filter(h => data[k][h.id]).length : 0;
+}
+
+function isDone(i) { return habitsDone(i) === HABITS.length; }
+
+function buildGrid() {
+  const wrapper = document.getElementById('gridWrapper');
+  wrapper.innerHTML = '';
+  const today = todayIdx();
+  let curMonth = -1, gridEl = null;
+
+  for (let i = 0; i < TOTAL; i++) {
+    const d = dateForDay(i);
+    const month = d.getMonth();
+
+    if (month !== curMonth) {
+      const lbl = document.createElement('div');
+      lbl.className = 'month-label';
+      lbl.textContent = MONTHS_FULL[month];
+      wrapper.appendChild(lbl);
+
+      gridEl = document.createElement('div');
+      gridEl.className = 'grid';
+
+      if (i === 0) {
+        const offset = (d.getDay() + 6) % 7;
+        for (let p = 0; p < offset; p++) gridEl.appendChild(document.createElement('div'));
+      }
+
+      wrapper.appendChild(gridEl);
+      curMonth = month;
+    }
+
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    const isFuture = i > today;
+    if (i === today) cell.classList.add('today');
+    else if (isFuture) cell.classList.add('future');
+    if (isDone(i)) cell.classList.add('done');
+
+    const done = habitsDone(i);
+    cell.innerHTML = `
+      <div class="day-num">${i + 1}</div>
+      <div class="day-date-label">${d.getDate()} ${MONTHS_NL[month]}</div>
+      <div class="dots">${HABITS.map((_,j) => `<div class="dot${j < done ? ' on':''}"></div>`).join('')}</div>
+    `;
+
+    if (!isFuture) cell.addEventListener('click', () => openSheet(i));
+    gridEl.appendChild(cell);
+  }
+
+  updateProgress();
+  updateStreak();
+}
+
+function updateProgress() {
+  const today = todayIdx();
+  let count = 0;
+  for (let i = 0; i <= Math.min(today, TOTAL - 1); i++) if (isDone(i)) count++;
+  const pct = Math.round((count / TOTAL) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('doneCount').textContent = count;
+  document.getElementById('pct').textContent = pct + '% klaar';
+}
+
+function updateStreak() {
+  const today = todayIdx();
+  let streak = 0;
+  for (let i = Math.min(today, TOTAL - 1); i >= 0; i--) {
+    if (isDone(i)) streak++; else break;
+  }
+  document.getElementById('streakNum').textContent = streak;
+}
+
+function openSheet(dayIdx) {
+  const d = dateForDay(dayIdx);
+  const k = dayKey(dayIdx);
+  if (!data[k]) data[k] = {};
+  document.getElementById('sheetDayNum').innerHTML = `Dag <em>${dayIdx + 1}</em>`;
+  document.getElementById('sheetDayDate').textContent =
+    `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]} 2026`;
+  renderHabits(k);
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+}
+
+function renderHabits(k) {
+  const list = document.getElementById('habitList');
+  list.innerHTML = '';
+  HABITS.forEach(h => {
+    const checked = !!(data[k] && data[k][h.id]);
+    const row = document.createElement('div');
+    row.className = 'habit-row' + (checked ? ' checked' : '');
+    row.innerHTML = `
+      <div class="habit-emoji">${h.emoji}</div>
+      <div class="habit-text">
+        <div class="habit-name">${h.name}</div>
+        <div class="habit-desc">${h.desc}</div>
+      </div>
+      <div class="habit-circle">${checked ? '✓' : ''}</div>
+    `;
+    row.addEventListener('click', () => {
+      if (!data[k]) data[k] = {};
+      data[k][h.id] = !data[k][h.id];
+      saveData(); renderHabits(k); buildGrid();
+    });
+    list.appendChild(row);
+  });
+  const allDone = HABITS.every(h => data[k] && data[k][h.id]);
+  document.getElementById('allDoneBanner').classList.toggle('show', allDone);
+}
+
+function closeSheet() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+}
+
+buildGrid();
+</script>
+</body>
+</html>
